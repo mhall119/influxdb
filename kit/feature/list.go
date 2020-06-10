@@ -72,6 +72,34 @@ func PushDownWindowAggregateCount() BoolFlag {
 	return pushDownWindowAggregateCount
 }
 
+var pushDownWindowAggregateFirst = MakeBoolFlag(
+	"Push Down Window Aggregate First",
+	"pushDownWindowAggregateFirst",
+	"Query Team",
+	false,
+	Temporary,
+	false,
+)
+
+// PushDownWindowAggregateFirst - Enable First variant of PushDownWindowAggregateRule and PushDownBareAggregateRule
+func PushDownWindowAggregateFirst() BoolFlag {
+	return pushDownWindowAggregateFirst
+}
+
+var pushDownWindowAggregateLast = MakeBoolFlag(
+	"Push Down Window Aggregate Last",
+	"pushDownWindowAggregateLast",
+	"Query Team",
+	false,
+	Temporary,
+	false,
+)
+
+// PushDownWindowAggregateLast - Enable Last variant of PushDownWindowAggregateRule and PushDownBareAggregateRule
+func PushDownWindowAggregateLast() BoolFlag {
+	return pushDownWindowAggregateLast
+}
+
 var pushDownWindowAggregateRest = MakeBoolFlag(
 	"Push Down Window Aggregate Rest",
 	"pushDownWindowAggregateRest",
@@ -218,6 +246,8 @@ var all = []Flag{
 	communityTemplates,
 	frontendExample,
 	pushDownWindowAggregateCount,
+	pushDownWindowAggregateFirst,
+	pushDownWindowAggregateLast,
 	pushDownWindowAggregateRest,
 	newAuth,
 	sessionService,
@@ -236,6 +266,8 @@ var byKey = map[string]Flag{
 	"communityTemplates":           communityTemplates,
 	"frontendExample":              frontendExample,
 	"pushDownWindowAggregateCount": pushDownWindowAggregateCount,
+	"pushDownWindowAggregateFirst": pushDownWindowAggregateFirst,
+	"pushDownWindowAggregateLast":  pushDownWindowAggregateLast,
 	"pushDownWindowAggregateRest":  pushDownWindowAggregateRest,
 	"newAuth":                      newAuth,
 	"sessionService":               sessionService,

@@ -49,6 +49,20 @@
   default: false
   contact: Query Team
 
+- name: Push Down Window Aggregate First
+  description: Enable First variant of PushDownWindowAggregateRule and PushDownBareAggregateRule
+  key: pushDownWindowAggregateFirst
+  default: false
+  contact: Query Team
+  lifetime: temporary
+
+- name: Push Down Window Aggregate Last
+  description: Enable Last variant of PushDownWindowAggregateRule and PushDownBareAggregateRule
+  key: pushDownWindowAggregateLast
+  default: false
+  contact: Query Team
+  lifetime: temporary
+
 - name: Push Down Window Aggregate Rest
   description: Enable non-Count variants of PushDownWindowAggregateRule and PushDownWindowAggregateRule (stage 2)
   key: pushDownWindowAggregateRest
