@@ -26,11 +26,16 @@ func NewWindowAggregateResultSet(ctx context.Context, req *datatypes.ReadWindowA
 		span.LogKV("aggregate_window_every", req.WindowEvery)
 	}
 
+	ascending := true
+	if len(req.Aggregate) > 0 && req.Aggregate[0].Type == datatypes.AggregateTypeLast {
+		ascending = false
+	}
+
 	results := &windowAggregateResultSet{
 		ctx:          ctx,
 		req:          req,
 		cursor:       cursor,
-		arrayCursors: newArrayCursors(ctx, req.Range.Start, req.Range.End, true),
+		arrayCursors: newArrayCursors(ctx, req.Range.Start, req.Range.End, ascending),
 	}
 	return results, nil
 }

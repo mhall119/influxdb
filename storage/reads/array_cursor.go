@@ -27,7 +27,7 @@ func newAggregateArrayCursor(ctx context.Context, agg *datatypes.Aggregate, curs
 		return newCountArrayCursor(cursor)
 	case datatypes.AggregateTypeSum:
 		return newSumArrayCursor(cursor)
-	case datatypes.AggregateTypeFirst:
+	case datatypes.AggregateTypeFirst, datatypes.AggregateTypeLast:
 		return newFirstArrayCursor(cursor)
 	default:
 		panic("invalid aggregate")
@@ -42,7 +42,7 @@ func newWindowAggregateArrayCursor(ctx context.Context, req *datatypes.ReadWindo
 	switch req.Aggregate[0].Type {
 	case datatypes.AggregateTypeCount:
 		return newWindowCountArrayCursor(cursor, req)
-	case datatypes.AggregateTypeFirst:
+	case datatypes.AggregateTypeFirst, datatypes.AggregateTypeLast:
 		return newWindowFirstArrayCursor(cursor, req)
 	default:
 		// TODO(sgc): should be validated higher up

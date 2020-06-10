@@ -57,7 +57,7 @@ func NewGroupResultSet(ctx context.Context, req *datatypes.ReadGroupRequest, new
 		o(g)
 	}
 
-	g.arrayCursors = newArrayCursors(ctx, req.Range.Start, req.Range.End, true)
+	g.arrayCursors = newArrayCursors(ctx, req.Range.Start, req.Range.End, req.Aggregate.Type != datatypes.AggregateTypeLast)
 
 	for i, k := range req.GroupKeys {
 		g.keys[i] = []byte(k)
