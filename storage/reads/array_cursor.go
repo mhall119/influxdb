@@ -42,6 +42,8 @@ func newWindowAggregateArrayCursor(ctx context.Context, req *datatypes.ReadWindo
 	switch req.Aggregate[0].Type {
 	case datatypes.AggregateTypeCount:
 		return newWindowCountArrayCursor(cursor, req)
+	case datatypes.AggregateTypeFirst:
+		return newWindowFirstArrayCursor(cursor, req)
 	default:
 		// TODO(sgc): should be validated higher up
 		panic("invalid aggregate")
@@ -91,6 +93,26 @@ func newCountArrayCursor(cur cursors.Cursor) cursors.Cursor {
 		return newStringCountArrayCursor(cur)
 	case cursors.BooleanArrayCursor:
 		return newBooleanCountArrayCursor(cur)
+	default:
+		panic(fmt.Sprintf("unreachable: %T", cur))
+	}
+}
+
+func newWindowFirstArrayCursor(cur cursors.Cursor, req *datatypes.ReadWindowAggregateRequest) cursors.Cursor {
+	if req.WindowEvery == math.MaxInt64 {
+		return newFirstArrayCursor(cur)
+	}
+	switch cur := cur.(type) {
+	case cursors.FloatArrayCursor:
+		return newFloatWindowFirstArrayCursor(cur, req.WindowEvery)
+	case cursors.IntegerArrayCursor:
+		return newIntegerWindowFirstArrayCursor(cur, req.WindowEvery)
+	case cursors.UnsignedArrayCursor:
+		return newUnsignedWindowFirstArrayCursor(cur, req.WindowEvery)
+	case cursors.StringArrayCursor:
+		return newStringWindowFirstArrayCursor(cur, req.WindowEvery)
+	case cursors.BooleanArrayCursor:
+		return newBooleanWindowFirstArrayCursor(cur, req.WindowEvery)
 	default:
 		panic(fmt.Sprintf("unreachable: %T", cur))
 	}
