@@ -161,6 +161,30 @@ func (c *floatArrayCursor) nextArrayCursor() bool {
 	return ok
 }
 
+type floatFirstArrayCursor struct {
+	cursors.FloatArrayCursor
+	res *cursors.FloatArray
+}
+
+func newFloatFirstArrayCursor(cur cursors.FloatArrayCursor) *floatFirstArrayCursor {
+	return &floatFirstArrayCursor{
+		FloatArrayCursor: cur,
+		res:              cursors.NewFloatArrayLen(1),
+	}
+}
+
+func (c floatFirstArrayCursor) Stats() cursors.CursorStats { return c.FloatArrayCursor.Stats() }
+
+func (c floatFirstArrayCursor) Next() *cursors.FloatArray {
+	a := c.FloatArrayCursor.Next()
+	if len(a.Timestamps) == 0 {
+		return a
+	}
+	c.res.Timestamps[0] = a.Timestamps[0]
+	c.res.Values[0] = a.Values[0]
+	return c.res
+}
+
 type floatArraySumCursor struct {
 	cursors.FloatArrayCursor
 	ts  [1]int64
@@ -469,6 +493,30 @@ func (c *integerArrayCursor) nextArrayCursor() bool {
 	}
 
 	return ok
+}
+
+type integerFirstArrayCursor struct {
+	cursors.IntegerArrayCursor
+	res *cursors.IntegerArray
+}
+
+func newIntegerFirstArrayCursor(cur cursors.IntegerArrayCursor) *integerFirstArrayCursor {
+	return &integerFirstArrayCursor{
+		IntegerArrayCursor: cur,
+		res:                cursors.NewIntegerArrayLen(1),
+	}
+}
+
+func (c integerFirstArrayCursor) Stats() cursors.CursorStats { return c.IntegerArrayCursor.Stats() }
+
+func (c integerFirstArrayCursor) Next() *cursors.IntegerArray {
+	a := c.IntegerArrayCursor.Next()
+	if len(a.Timestamps) == 0 {
+		return a
+	}
+	c.res.Timestamps[0] = a.Timestamps[0]
+	c.res.Values[0] = a.Values[0]
+	return c.res
 }
 
 type integerArraySumCursor struct {
@@ -781,6 +829,30 @@ func (c *unsignedArrayCursor) nextArrayCursor() bool {
 	return ok
 }
 
+type unsignedFirstArrayCursor struct {
+	cursors.UnsignedArrayCursor
+	res *cursors.UnsignedArray
+}
+
+func newUnsignedFirstArrayCursor(cur cursors.UnsignedArrayCursor) *unsignedFirstArrayCursor {
+	return &unsignedFirstArrayCursor{
+		UnsignedArrayCursor: cur,
+		res:                 cursors.NewUnsignedArrayLen(1),
+	}
+}
+
+func (c unsignedFirstArrayCursor) Stats() cursors.CursorStats { return c.UnsignedArrayCursor.Stats() }
+
+func (c unsignedFirstArrayCursor) Next() *cursors.UnsignedArray {
+	a := c.UnsignedArrayCursor.Next()
+	if len(a.Timestamps) == 0 {
+		return a
+	}
+	c.res.Timestamps[0] = a.Timestamps[0]
+	c.res.Values[0] = a.Values[0]
+	return c.res
+}
+
 type unsignedArraySumCursor struct {
 	cursors.UnsignedArrayCursor
 	ts  [1]int64
@@ -1091,6 +1163,30 @@ func (c *stringArrayCursor) nextArrayCursor() bool {
 	return ok
 }
 
+type stringFirstArrayCursor struct {
+	cursors.StringArrayCursor
+	res *cursors.StringArray
+}
+
+func newStringFirstArrayCursor(cur cursors.StringArrayCursor) *stringFirstArrayCursor {
+	return &stringFirstArrayCursor{
+		StringArrayCursor: cur,
+		res:               cursors.NewStringArrayLen(1),
+	}
+}
+
+func (c stringFirstArrayCursor) Stats() cursors.CursorStats { return c.StringArrayCursor.Stats() }
+
+func (c stringFirstArrayCursor) Next() *cursors.StringArray {
+	a := c.StringArrayCursor.Next()
+	if len(a.Timestamps) == 0 {
+		return a
+	}
+	c.res.Timestamps[0] = a.Timestamps[0]
+	c.res.Values[0] = a.Values[0]
+	return c.res
+}
+
 type stringWindowCountArrayCursor struct {
 	cursors.StringArrayCursor
 	every int64
@@ -1359,6 +1455,30 @@ func (c *booleanArrayCursor) nextArrayCursor() bool {
 	}
 
 	return ok
+}
+
+type booleanFirstArrayCursor struct {
+	cursors.BooleanArrayCursor
+	res *cursors.BooleanArray
+}
+
+func newBooleanFirstArrayCursor(cur cursors.BooleanArrayCursor) *booleanFirstArrayCursor {
+	return &booleanFirstArrayCursor{
+		BooleanArrayCursor: cur,
+		res:                cursors.NewBooleanArrayLen(1),
+	}
+}
+
+func (c booleanFirstArrayCursor) Stats() cursors.CursorStats { return c.BooleanArrayCursor.Stats() }
+
+func (c booleanFirstArrayCursor) Next() *cursors.BooleanArray {
+	a := c.BooleanArrayCursor.Next()
+	if len(a.Timestamps) == 0 {
+		return a
+	}
+	c.res.Timestamps[0] = a.Timestamps[0]
+	c.res.Values[0] = a.Values[0]
+	return c.res
 }
 
 type booleanWindowCountArrayCursor struct {

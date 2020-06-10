@@ -161,6 +161,30 @@ func (c *{{.name}}ArrayCursor) nextArrayCursor() bool {
 	return ok
 }
 
+type {{.name}}FirstArrayCursor struct {
+	cursors.{{.Name}}ArrayCursor
+	res {{$arrayType}}
+}
+
+func new{{.Name}}FirstArrayCursor(cur cursors.{{.Name}}ArrayCursor) *{{.name}}FirstArrayCursor {
+	return &{{.name}}FirstArrayCursor{
+		{{.Name}}ArrayCursor: cur,
+		res: cursors.New{{.Name}}ArrayLen(1),
+	}
+}
+
+func (c {{.name}}FirstArrayCursor) Stats() cursors.CursorStats { return c.{{.Name}}ArrayCursor.Stats() }
+
+func (c {{.name}}FirstArrayCursor) Next() {{$arrayType}} {
+	a := c.{{.Name}}ArrayCursor.Next()
+	if len(a.Timestamps) == 0 {
+		return a
+	}
+	c.res.Timestamps[0] = a.Timestamps[0]
+	c.res.Values[0] = a.Values[0]
+	return c.res
+}
+
 {{if .Agg}}
 {{$type := print .name "ArraySumCursor"}}
 {{$Type := print .Name "ArraySumCursor"}}

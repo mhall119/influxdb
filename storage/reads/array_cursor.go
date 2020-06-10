@@ -27,6 +27,8 @@ func newAggregateArrayCursor(ctx context.Context, agg *datatypes.Aggregate, curs
 		return newCountArrayCursor(cursor)
 	case datatypes.AggregateTypeSum:
 		return newSumArrayCursor(cursor)
+	case datatypes.AggregateTypeFirst:
+		return newFirstArrayCursor(cursor)
 	default:
 		panic("invalid aggregate")
 	}
@@ -43,6 +45,23 @@ func newWindowAggregateArrayCursor(ctx context.Context, req *datatypes.ReadWindo
 	default:
 		// TODO(sgc): should be validated higher up
 		panic("invalid aggregate")
+	}
+}
+
+func newFirstArrayCursor(cur cursors.Cursor) cursors.Cursor {
+	switch cur := cur.(type) {
+	case cursors.FloatArrayCursor:
+		return newFloatFirstArrayCursor(cur)
+	case cursors.IntegerArrayCursor:
+		return newIntegerFirstArrayCursor(cur)
+	case cursors.UnsignedArrayCursor:
+		return newUnsignedFirstArrayCursor(cur)
+	case cursors.StringArrayCursor:
+		return newStringFirstArrayCursor(cur)
+	case cursors.BooleanArrayCursor:
+		return newBooleanFirstArrayCursor(cur)
+	default:
+		panic(fmt.Sprintf("unreachable: %T", cur))
 	}
 }
 
