@@ -39,12 +39,6 @@ func NewHTTPServer(log *zap.Logger, svc SVC) *HTTPServer {
 	}
 
 	r := chi.NewRouter()
-	r.Use(
-		middleware.Recoverer,
-		middleware.RequestID,
-		middleware.RealIP,
-	)
-
 	{
 		r.With(middleware.AllowContentType("text/yml", "application/x-yaml", "application/json")).
 			Post("/", svr.createPkg)
@@ -56,6 +50,8 @@ func NewHTTPServer(log *zap.Logger, svc SVC) *HTTPServer {
 			r.Post("/", svr.createStack)
 			r.Get("/", svr.listStacks)
 			r.Delete("/{stack_id}", svr.deleteStack)
+			r.With(middleware.AllowContentType("text/yml", "application/x-yaml", "application/json")).
+				Get("/{stack_id}/export", svr.exportStack)
 		})
 	}
 
@@ -243,6 +239,47 @@ func (s *HTTPServer) deleteStack(w http.ResponseWriter, r *http.Request) {
 	s.api.Respond(w, r, http.StatusNoContent, nil)
 }
 
+func (s *HTTPServer) exportStack(w http.ResponseWriter, r *http.Request) {
+	orgID, err := getRequiredOrgIDFromQuery(r.URL.Query())
+	if err != nil {
+		s.api.Err(w, r, err)
+		return
+	}
+
+	stackID, err := influxdb.IDFromString(chi.URLParam(r, "stack_id"))
+	if err != nil {
+		s.api.Err(w, r, &influxdb.Error{
+			Code: influxdb.EInvalid,
+			Msg:  "the stack id provided in the path was invalid",
+			Err:  err,
+		})
+		return
+	}
+
+	pkg, err := s.svc.ExportStack(r.Context(), orgID, *stackID)
+	if err != nil {
+		s.api.Err(w, r, err)
+		return
+	}
+
+	encoding := pkgEncoding(r.Header.Get("Accept"))
+
+	b, err := pkg.Encode(encoding)
+	if err != nil {
+		s.api.Err(w, r, err)
+		return
+	}
+
+	switch encoding {
+	case EncodingYAML:
+		w.Header().Set("Content-Type", "application/x-yaml")
+	default:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	}
+
+	s.api.Write(w, http.StatusOK, b)
+}
+
 func getRequiredOrgIDFromQuery(q url.Values) (influxdb.ID, error) {
 	orgIDRaw := q.Get("orgID")
 	if orgIDRaw == "" {
@@ -302,8 +339,6 @@ func (r *ReqCreatePkg) OK() error {
 type RespCreatePkg []Object
 
 func (s *HTTPServer) createPkg(w http.ResponseWriter, r *http.Request) {
-	encoding := pkgEncoding(r.Header)
-
 	var reqBody ReqCreatePkg
 	if err := s.api.DecodeJSON(r.Body, &reqBody); err != nil {
 		s.api.Err(w, r, err)
@@ -338,7 +373,7 @@ func (s *HTTPServer) createPkg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var enc encoder
-	switch encoding {
+	switch pkgEncoding(r.Header.Get("Accept")) {
 	case EncodingYAML:
 		enc = yaml.NewEncoder(w)
 		w.Header().Set("Content-Type", "application/x-yaml")
@@ -417,7 +452,7 @@ func (r ReqApplyPkg) Pkgs(encoding Encoding) (*Pkg, error) {
 		rawPkgs = append(rawPkgs, pkg)
 	}
 
-	return Combine(rawPkgs, ValidWithoutResources())
+	return Combine(rawPkgs, ValidWithoutResources(), ValidSkipParseError())
 }
 
 // RespApplyPkg is the response body for the apply pkg endpoint.
@@ -523,7 +558,7 @@ type encoder interface {
 }
 
 func decodeWithEncoding(r *http.Request, v interface{}) (Encoding, error) {
-	encoding := pkgEncoding(r.Header)
+	encoding := pkgEncoding(r.Header.Get("Content-Type"))
 
 	var dec interface{ Decode(interface{}) error }
 	switch encoding {
@@ -538,8 +573,8 @@ func decodeWithEncoding(r *http.Request, v interface{}) (Encoding, error) {
 	return encoding, dec.Decode(v)
 }
 
-func pkgEncoding(headers http.Header) Encoding {
-	switch contentType := headers.Get("Content-Type"); contentType {
+func pkgEncoding(contentType string) Encoding {
+	switch contentType {
 	case "application/x-jsonnet":
 		return EncodingJsonnet
 	case "text/yml", "application/x-yaml":
