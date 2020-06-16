@@ -1724,7 +1724,11 @@ func (s *Service) taskOwnerIDUpMigration(ctx context.Context, store Store) error
 				ownerlessTasks = append(ownerlessTasks, t)
 			}
 		}
-		return c.Err()
+if err := c.Err(); err != nil {
+    return err
+}
+
+return c.Close()
 	})
 	if err != nil {
 		return err
