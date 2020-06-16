@@ -1709,9 +1709,6 @@ func (s *Service) taskOwnerIDUpMigration(ctx context.Context, store Store) error
 			return influxdb.ErrUnexpectedTaskBucketErr(err)
 		}
 
-		// free cursor resources
-		defer c.Close()
-
 		for k, v := c.Next(); k != nil; k, v = c.Next() {
 			kvTask := &kvTask{}
 			if err := json.Unmarshal(v, kvTask); err != nil {
@@ -1724,11 +1721,11 @@ func (s *Service) taskOwnerIDUpMigration(ctx context.Context, store Store) error
 				ownerlessTasks = append(ownerlessTasks, t)
 			}
 		}
-if err := c.Err(); err != nil {
-    return err
-}
+		if err := c.Err(); err != nil {
+			return err
+		}
 
-return c.Close()
+		return c.Close()
 	})
 	if err != nil {
 		return err
@@ -1737,7 +1734,7 @@ return c.Close()
 	// loop through tasks
 	for _, t := range ownerlessTasks {
 		// open transaction
-		err := s.kv.Update(ctx, func(tx Tx) error {
+		err := store.Update(ctx, func(tx Tx) error {
 			taskKey, err := taskKey(t.ID)
 			if err != nil {
 				return err
@@ -1786,12 +1783,18 @@ return c.Close()
 				if err != nil {
 					return err
 				}
-				cur, err := b.Cursor()
+
+				id, err := t.OrganizationID.Encode()
 				if err != nil {
 					return err
 				}
 
-				for k, v := cur.First(); k != nil; k, v = cur.Next() {
+				cur, err := b.ForwardCursor(id, WithCursorPrefix(id))
+				if err != nil {
+					return err
+				}
+
+				for k, v := cur.Next(); k != nil; k, v = cur.Next() {
 					m := &influxdb.UserResourceMapping{}
 					if err := json.Unmarshal(v, m); err != nil {
 						return err
@@ -1800,6 +1803,10 @@ return c.Close()
 						t.OwnerID = m.UserID
 						break
 					}
+				}
+
+				if err := cur.Close(); err != nil {
+					return err
 				}
 			}
 
